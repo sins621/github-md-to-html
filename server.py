@@ -3,9 +3,14 @@ import markdown
 import markdown.extensions.fenced_code
 
 from flask import Flask
+from flask_cors import CORS, cross_origin
 from git import Repo
 
+# TODO: Parse img tags to prepend https://raw.githubusercontent.com/sins621/Obsidian-Notes/main
+
 app = Flask(__name__)
+cors = CORS(app)
+app.config["CORS_HEADERS"] = "Content-Type"
 git_url = "https://github.com/sins621/Obsidian-Notes"
 to_path = "./github-files"
 repo = None
@@ -30,6 +35,7 @@ html = markdown.markdown(md_file, extensions=["fenced_code"])
 
 
 @app.route("/")
+@cross_origin()
 def hello_world():
     return html
 
