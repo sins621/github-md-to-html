@@ -11,6 +11,9 @@ cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
 
+# TODO: Add try catch and validate args
+
+
 @app.route("/get_tree")
 @cross_origin()
 def get_tree():
@@ -36,10 +39,10 @@ def get_tree():
 @cross_origin()
 def get_file():
     args = request.args
-    response = requests.get(url=args.get("url"))
+    response = requests.get(url=args.get("url", ""))
     data = response.json()
     content = data["content"]
-    dir = args.get("path").rpartition("/")[0]
+    dir = args.get("path", "").rpartition("/")[0]
     decoded_string = base64.b64decode(content).decode("utf-8")
     decoded_string = decoded_string.replace(
         "![](",
