@@ -17,6 +17,8 @@ app.config["CORS_HEADERS"] = "Content-Type"
 @app.route("/get_tree")
 @cross_origin()
 def get_tree():
+    print(request.args.get("github_user"))
+    print(request.args.get("github_repo"))
     github_tree_api_url = f"https://api.github.com/repos/{request.args.get("github_user")}/{request.args.get("github_repo")}/git/trees/main?recursive=1"
     response = requests.get(url=github_tree_api_url)
     data = response.json()
@@ -32,6 +34,7 @@ def get_tree():
                     "url": dict["url"],
                 }
             )
+
     return jsonify(filtered_data)
 
 
@@ -39,17 +42,22 @@ def get_tree():
 @cross_origin()
 def get_file():
     args = request.args
-    response = requests.get(url=args.get("url", ""))
-    data = response.json()
-    content = data["content"]
-    dir = args.get("path", "").rpartition("/")[0]
-    decoded_string = base64.b64decode(content).decode("utf-8")
-    decoded_string = decoded_string.replace(
-        "![](",
-        f"![](https://raw.githubusercontent.com/{args.get("github_user")}/{args.get("github_repo")}/refs/heads/main/{dir}/",
-    )
-    html = markdown.markdown(decoded_string, extensions=["fenced_code"])
-    return html
+    github_user = args.get("github_user")
+    github_repo = args.get("github_repo")
+    file_url = args.get("url", None)
+    if file_url:
+        response = requests.get(url=file_url)
+        response.raise_for_status()
+        data = response.json()
+        content = data["content"]
+        dir = args.get("path", "").rpartition("/")[0]
+        decoded_string = base64.b64decode(content).decode("utf-8")
+        decoded_string = decoded_string.replace(
+            "![](",
+            f"![](https://raw.githubusercontent.com/{github_user}/{github_repo}/refs/heads/main/{dir}/",
+        )
+        html = markdown.markdown(decoded_string, extensions=["fenced_code"])
+        return html
 
 
 if __name__ == "__main__":
